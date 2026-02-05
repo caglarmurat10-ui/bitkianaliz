@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
     } catch (error: any) {
         console.error("API Error:", error);
         return NextResponse.json(
-            { error: error.message || "Analiz işlemi başarısız oldu." },
+            {
+                error: error.message || "Analiz işlemi başarısız oldu.",
+                envVars: Object.keys(process.env).filter(k => k.includes("API") || k.includes("NEXT"))
+            },
             { status: 500 }
         );
     }
