@@ -26,11 +26,11 @@ export default function Home() {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            const data = await getWeatherAction(position.coords.latitude, position.coords.longitude);
-            if (data) {
-              setWeather(data);
+            const result = await getWeatherAction(position.coords.latitude, position.coords.longitude);
+            if (result.data) {
+              setWeather(result.data);
             } else {
-              setWeatherError("API hatası veya konum bulunamadı.");
+              setWeatherError(result.error || "Hava durumu alınamadı.");
             }
           } catch (error) {
             console.error(error); // Keep error logging mostly for dev, user sees generic error

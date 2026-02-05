@@ -11,10 +11,12 @@ export interface WeatherData {
 
 const API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
 
-export async function getWeatherData(lat: number, lon: number): Promise<WeatherData | null> {
+// ... types existing ...
+
+export async function getWeatherData(lat: number, lon: number): Promise<{ data?: WeatherData; error?: string }> {
     if (!API_KEY) {
         console.warn("Weather API Key missing");
-        return null;
+        return { error: "API Anahtarı (NEXT_PUBLIC_WEATHER_API_KEY) sunucuda bulunamadı." };
     }
 
     try {
@@ -22,10 +24,15 @@ export async function getWeatherData(lat: number, lon: number): Promise<WeatherD
             `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=tr&appid=${API_KEY}`
         );
 
-        if (!res.ok) throw new Error("Weather API Error");
+        if (!res.ok) {
+            if (res.status === 401) return { error: "API Anahtarı geçersiz veya henüz aktif değil. (Lütfen 1-2 saat bekleyin)" };
+            if (res.status === 404) return { error: "Konum verisi bulunamadı." };
+            return { error: `Hava durumu servisi hatası: ${res.status}` };
+        }
 
         const data = await res.json();
 
+        // ... logic existing ...
         const windSpeed = data.wind.speed * 3.6; // Convert m/s to km/h
         const temp = data.main.temp;
         const humidity = data.main.humidity;
@@ -52,16 +59,18 @@ export async function getWeatherData(lat: number, lon: number): Promise<WeatherD
         }
 
         return {
-            temp: Math.round(temp),
-            humidity,
-            windSpeed: Math.round(windSpeed),
-            description: data.weather[0].description,
-            icon: data.weather[0].icon,
-            isSuitableForSpraying: isSuitable,
-            sprayingWarning: warning,
+            data: {
+                temp: Math.round(temp),
+                humidity,
+                windSpeed: Math.round(windSpeed),
+                description: data.weather[0].description,
+                icon: data.weather[0].icon,
+                isSuitableForSpraying: isSuitable,
+                sprayingWarning: warning,
+            }
         };
-    } catch (error) {
+    } catch (error: any) {
         console.error("Weather Service Error:", error);
-        return null;
+        return { error: `Sunucu hatası: ${error.message}` };
     }
 }
