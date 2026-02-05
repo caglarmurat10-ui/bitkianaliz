@@ -57,7 +57,9 @@ export async function analyzePlantImage(base64Image: string): Promise<AnalysisRe
 
     return JSON.parse(cleanText) as AnalysisResult;
   } catch (error: any) {
+    const keyStatus = apiKey ? `Mevcut (Uzunluk: ${apiKey.length})` : "EKSİK";
     console.error("Gemini Analysis Error:", error);
-    throw new Error(`Analiz hatası: ${error.message || error}`);
+    console.error("API Key Status:", keyStatus);
+    throw new Error(`Analiz hatası: ${error.message || error} (API Key: ${keyStatus})`);
   }
 }
